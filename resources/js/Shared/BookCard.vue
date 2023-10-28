@@ -24,16 +24,17 @@ export default {
 </script>
 
 <template>
-    <v-card class="pa-5">
-        <v-card-title class="title">{{ title }} ({{ publish_year }})</v-card-title>
-        <span class="author">
+    <v-card class="pa-5 card">
+        <h2 class="title">{{ title }} ({{ publish_year }})</h2>
+        <v-img class="thumbnail" :src="thumbnail"></v-img>
+        <span class="authors">
             Authored by: {{ joinedAuthors }}
         </span>
 
         <span class="isbn">   
             #{{ isbn }}
         </span>
-        <div class="chips">
+        <div class="tags">
 
             <v-chip v-for="tag in tagNames">{{ tag }}</v-chip>
         </div>
@@ -41,5 +42,29 @@ export default {
 </template>
 
 <style scoped>
-
+.card{
+    display: grid;
+    gap: 2em;
+    grid-template-areas: 
+        "thumbnail title isbn"
+        "thumbnail authors authors"
+        "thumbnail tags tags";
+    grid-template-columns: minmax(3em, 10em) 4fr min-content;
+}
+.title{
+    grid-area: title;
+}
+.authors{
+    font-style: italic;
+    grid-area: authors;
+}
+.isbn{
+    grid-area: isbn;
+}
+.thumbnail{
+    grid-area: thumbnail;
+}
+.tags{
+    grid-area: tags;
+}
 </style>
