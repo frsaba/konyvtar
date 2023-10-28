@@ -1,7 +1,8 @@
 <script>
 import BookCard from '../Shared/BookCard.vue';
+import Layout from '../Shared/Layout.vue';
 export default {
-	components: {BookCard},
+	components: { Layout, BookCard, Layout },
 	props: {
 		books: Array,
 	}
@@ -9,13 +10,16 @@ export default {
 </script>
 
 <template>
-	<h1>Books</h1>
+	<Layout>
 
-	<div class="books">
-		<book-card v-for="book in books" :key="book.isbn" v-bind="book">
+		<h1>Books</h1>
 
-		</book-card>
-	</div>
+		<div class="books">
+			<book-card v-for="book in books" :key="book.isbn" v-bind="book">
+
+			</book-card>
+		</div>
+	</Layout>
 </template>
 
 
