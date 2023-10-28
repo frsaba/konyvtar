@@ -17,23 +17,23 @@ export default {
 	},
 	computed: {
 		title() {
-			return this.translations[0].title
+			return this.translations[0]?.title
 		},
 		description() {
-			return this.translations[0].description
+			return this.translations[0]?.description
 		},
 		joinedAuthors() {
-			return this.authors.map(author => author.name).join(", ");
+			return this.authors?.map(author => author?.name).join(", ");
 		},
 		tagNames() {
-			return this.tags.map(tag => tag.translations[0].name)
+			return this.tags?.map(tag => tag.translations[0]?.name)
 		}
 	}
 }
 </script>
 
 <template>
-	<v-card class="pa-5 card">
+	<v-card class="pa-5 ma-5 card">
 		<h2 class="title">{{ title }} ({{ publish_year }})</h2>
 		<v-img class="thumbnail" :src="thumbnail"></v-img>
 		<span class="authors">
@@ -49,7 +49,7 @@ export default {
 		</span>
 		<div class="tags">
 
-			<v-chip v-for="tag in tagNames">{{ tag }}</v-chip>
+			<v-chip v-for="tag in tagNames" :key="tag">{{ tag }}</v-chip>
 		</div>
 	</v-card>
 </template>
@@ -63,7 +63,7 @@ export default {
 		"thumbnail authors authors"
 		"thumbnail description description"
 		"thumbnail tags edit";
-	grid-template-columns: minmax(3em, 10em) 4fr min-content;
+	grid-template-columns: minmax(3em, 10em) 4fr max-content;
 }
 
 .title {

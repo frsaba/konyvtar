@@ -32,8 +32,8 @@ import { Link } from '@inertiajs/vue3'
 
 <style>
 .main {
-	max-width: 800px;
-	margin-top: 80px;
+	max-width: 1200px;
+	margin-top: 100px;
 }
 
 .header {
