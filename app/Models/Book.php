@@ -22,4 +22,9 @@ class Book extends Model
 	{
 		return $this->belongsToMany(Tag::class);
 	}
+
+	public function authors(): BelongsToMany
+	{
+		return $this->belongsToMany(Author::class);
+	}
 }

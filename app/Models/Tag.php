@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Tag extends Model
 {
     use HasFactory;
+
+	public function books()
+    {
+        return $this->belongsToMany(Book::class);
+    }
+
+    public function translations()
+    {
+        return $this->hasMany(TagTranslation::class);
+    }
 }
