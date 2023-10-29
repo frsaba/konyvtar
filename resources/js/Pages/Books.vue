@@ -5,29 +5,42 @@ export default {
 	components: { Layout, BookCard, Layout },
 	props: {
 		books: Array,
+		tags: Array
 	},
-	data:() =>({
+	data: () => ({
 		searchTitle: "",
-		searchAuthors: ""
+		searchAuthors: "",
+		searchTags: []
 	}),
 	computed: {
-		filteredBooks(){
-			let books = this.books;
-			if(this.searchTitle) 
-				books = books.filter(b => this.matches(this.getBookTitle(b),this.searchTitle))
-			if(this.searchAuthors)
-				books = books.filter(b => this.matches(this.getBookAuthors(b),this.searchAuthors))
+		filteredBooks() {
+			let books = this.books.filter(book =>
+				this.matches(this.getBookTitle(book), this.searchTitle) &&
+				this.matches(this.getBookAuthors(book), this.searchAuthors));
+
+			if(this.searchTags.length > 0)
+				books = books.filter(book => this.searchTagIDs.some(tagID => this.bookHasTag(book,tagID)));
 			return books;
 		},
+		tagNames() {
+			return this.tags?.map(tag => tag?.translations[0]?.name)
+		},
+		searchTagIDs(){
+			return this.searchTags.map(i => this.tags[i].id)
+		}
 	},
-	methods:{
-		getBookTitle(book){
+	methods: {
+		getBookTitle(book) {
 			return book.translations[0]?.title
 		},
 		getBookAuthors(book) {
 			return book.authors?.map(author => author?.name).join(", ");
 		},
-		matches(str,query){
+		bookHasTag(book, tagID){
+			return book.tags.some(tag => tag.id == tagID);
+		},
+		matches(str, query) {
+			if (query == "") return true;
 			return str.toLowerCase().includes(query.toLowerCase())
 		}
 	}
@@ -37,21 +50,14 @@ export default {
 <template>
 	<Layout>
 
-		
+
 		<div class="sidebar">
 			<h1>Search books</h1>
-			<v-text-field
-				name="title_search"
-				v-model.trim="searchTitle"
-				label="Search in title"
-			></v-text-field>
-
-			<v-text-field
-				name="author_search"
-				label="Search authors"
-				v-model.trim="searchAuthors"
-			></v-text-field>
-
+			<v-text-field name="title_search" v-model.trim="searchTitle" label="Search in title"></v-text-field>
+			<v-text-field name="author_search" label="Search authors" v-model.trim="searchAuthors"></v-text-field>
+			<v-chip-group v-model="searchTags" column multiple>
+				<v-chip v-for="tag in tagNames">{{ tag }}</v-chip>
+			</v-chip-group>
 		</div>
 
 		<div class="books">
@@ -64,13 +70,19 @@ export default {
 
 
 <style scoped>
-.sidebar{
-	width: 24%;
-	max-width: 16em;
-	padding: 0.4em;
-	position: fixed;
+.sidebar {
+	padding: 0.5em;
 }
-.books{
-	margin-left: 25%;
+
+@media screen and (min-width: 800px) {
+	.sidebar {
+		width: 24%;
+		max-width: 16em;
+		position: fixed;
+	}
+
+	.books {
+		margin-left: 25%;
+	}
 }
 </style>
