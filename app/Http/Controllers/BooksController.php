@@ -27,7 +27,7 @@ class BooksController extends Controller
 
     public function index(Request $request)
     {
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
 
         $language = $request->query('lang');
         $languageId = Language::where('short_name', 'LIKE', $language)->value('id') ?? $this->DEFAULT_LANGUAGE_ID;

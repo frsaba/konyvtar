@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BooksController;
+use App\Http\Controllers\LanguagesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Book;
@@ -22,3 +23,4 @@ use function Termwind\render;
 */
 
 Route::get('/', [BooksController::class, 'index']);
+Route::get('/languages', [LanguagesController::class, 'index']);

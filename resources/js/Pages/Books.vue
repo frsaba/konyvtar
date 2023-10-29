@@ -1,16 +1,19 @@
 <script>
 import BookCard from '../Shared/BookCard.vue';
 import Layout from '../Shared/Layout.vue';
+import LanguageSelect from '../Shared/LanguageSelect.vue';
 export default {
-	components: { Layout, BookCard, Layout },
+	components: { Layout, BookCard, Layout, LanguageSelect },
 	props: {
 		books: Array,
-		tags: Array
+		tags: Array,
+		languages: Array
 	},
 	data: () => ({
 		searchTitle: "",
 		searchAuthors: "",
-		searchTags: []
+		searchTags: [],
+		selectedLanguage: ""
 	}),
 	computed: {
 		filteredBooks() {
@@ -18,14 +21,14 @@ export default {
 				this.matches(this.getBookTitle(book), this.searchTitle) &&
 				this.matches(this.getBookAuthors(book), this.searchAuthors));
 
-			if(this.searchTags.length > 0)
-				books = books.filter(book => this.searchTagIDs.some(tagID => this.bookHasTag(book,tagID)));
+			if (this.searchTags.length > 0)
+				books = books.filter(book => this.searchTagIDs.some(tagID => this.bookHasTag(book, tagID)));
 			return books;
 		},
 		tagNames() {
 			return this.tags?.map(tag => tag?.translations[0]?.name)
 		},
-		searchTagIDs(){
+		searchTagIDs() {
 			return this.searchTags.map(i => this.tags[i].id)
 		}
 	},
@@ -36,12 +39,17 @@ export default {
 		getBookAuthors(book) {
 			return book.authors?.map(author => author?.name).join(", ");
 		},
-		bookHasTag(book, tagID){
+		bookHasTag(book, tagID) {
 			return book.tags.some(tag => tag.id == tagID);
 		},
 		matches(str, query) {
 			if (query == "") return true;
 			return str.toLowerCase().includes(query.toLowerCase())
+		},
+	},
+	watch: {
+		selectedLanguage(language) {
+			this.$inertia.get('/', { lang: language.short_name }, { preserveState: true, replace: true })
 		}
 	}
 }
@@ -49,15 +57,25 @@ export default {
 
 <template>
 	<Layout>
+		<template v-slot:header>
+			<div class="d-flex justify-between pa-5">
+				<h1>Search books</h1>
+				<v-spacer></v-spacer>
+				<Suspense>
+					<language-select v-model="selectedLanguage" @input="selectedLanguage = $event"></language-select>
+				</Suspense>
+			</div>
+		</template>
 
 
 		<div class="sidebar">
-			<h1>Search books</h1>
+
 			<v-text-field name="title_search" v-model.trim="searchTitle" label="Search in title"></v-text-field>
 			<v-text-field name="author_search" label="Search authors" v-model.trim="searchAuthors"></v-text-field>
 			<v-chip-group v-model="searchTags" column multiple>
 				<v-chip v-for="tag in tagNames">{{ tag }}</v-chip>
 			</v-chip-group>
+
 		</div>
 
 		<div class="books">
