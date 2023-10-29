@@ -5,45 +5,47 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Language;
+use App\Models\Tag;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
 class BooksController extends Controller
 {
-	public function index(Request $request)
-	{
-		DB::enableQueryLog();
-		$DEFAULT_LANGUAGE_ID = 1;
+    private $DEFAULT_LANGUAGE_ID = 1;
 
-		$language = $request->query('lang');
-		$language_id = Language::where('short_name', 'LIKE', $language)->value('id');
-		$language_id ??= $DEFAULT_LANGUAGE_ID;
+	//returns a closure for fetching translations based on the provided language ID with a fallback to default language ID.
+    private function getTranslationsQuery($languageId)
+    {
+        $defaultLanguageId = $this->DEFAULT_LANGUAGE_ID;
 
+        return function ($query) use ($languageId, $defaultLanguageId) {
+            $query->where('language_id', $languageId)
+                ->orWhere('language_id', $defaultLanguageId)
+                ->orderBy('language_id', 'desc');
+        };
+    }
 
-		$books = Book::with([
-			'translations' => function ($query) use ($language_id, $DEFAULT_LANGUAGE_ID) {
-				$query->where('language_id', $language_id)
-					->orWhere('language_id', $DEFAULT_LANGUAGE_ID)
-					->orderBy('language_id', 'desc'); 	//FIXME: since english has an ID of 1, this makes sure the selected language is used if a translation exists, else it falls back to english. But it breaks if a different default language is used
-			},
-			'authors' => function ($query) {
-				$query->select('id', 'name');
-			},
-			'tags',
-			'tags.translations' => function ($query) use ($language_id, $DEFAULT_LANGUAGE_ID) {
-				// $query->select('id', 'name');
-				$query->where('language_id', $language_id)
-					->orWhere('language_id', $DEFAULT_LANGUAGE_ID)
-					->orderBy('language_id', 'desc');
-					// ->first();
-			},
-		])->get();
+    public function index(Request $request)
+    {
+        DB::enableQueryLog();
 
-		// $books = Book::with(['translations', 'authors', 'tags'])->get();
+        $language = $request->query('lang');
+        $languageId = Language::where('short_name', 'LIKE', $language)->value('id') ?? $this->DEFAULT_LANGUAGE_ID;
 
-		// dd(DB::getQueryLog());
+        $books = Book::with([
+            'translations' => $this->getTranslationsQuery($languageId),
+            'authors' => function ($query) {
+                $query->select('id', 'name');
+            },
+            'tags',
+            'tags.translations' => $this->getTranslationsQuery($languageId),
+        ])->get();
 
+        $tags = Tag::with(['translations' => $this->getTranslationsQuery($languageId)])->get();
 
-		return Inertia::render("Books", ['books' => $books]);
-	}
+        return Inertia::render("Books", ['books' => $books, 'tags' => $tags]);
+    }
 }
+
+
+
