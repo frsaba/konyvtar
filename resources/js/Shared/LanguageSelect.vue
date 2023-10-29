@@ -16,7 +16,7 @@ function languageItemProps(item) {
 </script>
 
 <template>
-	<v-select class="select" label="Language" :items="languages" :value="modelValue" @update:modelValue="$emit('input', $event)"
+	<v-select class="select" hide-details label="Language" :items="languages" :value="modelValue" @update:modelValue="$emit('input', $event)"
 		:item-props="languageItemProps"></v-select>
 </template>
 

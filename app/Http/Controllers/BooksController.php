@@ -43,8 +43,15 @@ class BooksController extends Controller
 
         $tags = Tag::with(['translations' => $this->getTranslationsQuery($languageId)])->get();
 
-        return Inertia::render("Books", ['books' => $books, 'tags' => $tags]);
+        return Inertia::render('Books', ['books' => $books, 'tags' => $tags]);
     }
+
+	public function edit($id){
+
+		$book = Book::with(['translations', 'tags.translations'])->find($id);
+
+		return Inertia::render('EditBook', ['book' => $book]);
+	}
 }
 
 

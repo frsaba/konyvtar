@@ -12,7 +12,7 @@ export default {
 	},
 	methods: {
 		redirectToEdit() {
-			this.$inertia.visit(`/book/${this.id}/edit`);
+			this.$inertia.visit(`/books/${this.id}/edit`);
 		},
 	},
 	computed: {

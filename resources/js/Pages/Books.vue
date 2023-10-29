@@ -58,7 +58,7 @@ export default {
 <template>
 	<Layout>
 		<template v-slot:header>
-			<div class="d-flex justify-between pa-5">
+			<div class="d-flex justify-between px-5 pt-2">
 				<h1>Search books</h1>
 				<v-spacer></v-spacer>
 				<Suspense>

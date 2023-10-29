@@ -23,4 +23,5 @@ use function Termwind\render;
 */
 
 Route::get('/', [BooksController::class, 'index']);
+Route::get('/books/{id}/edit', [BooksController::class, 'edit']);
 Route::get('/languages', [LanguagesController::class, 'index']);
