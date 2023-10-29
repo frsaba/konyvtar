@@ -64,6 +64,7 @@ export default {
 			<book-card v-for="book in filteredBooks ?? []" :key="book.isbn" v-bind="book">
 
 			</book-card>
+			<div class="text-center" v-if="filteredBooks.length == 0">No results</div>
 		</div>
 	</Layout>
 </template>
