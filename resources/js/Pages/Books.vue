@@ -2,6 +2,7 @@
 import BookCard from '../Shared/BookCard.vue';
 import Layout from '../Shared/Layout.vue';
 import LanguageSelect from '../Shared/LanguageSelect.vue';
+import { validationRules } from '../Shared/formValidationRules';
 export default {
 	components: { Layout, BookCard, Layout, LanguageSelect },
 	props: {
@@ -13,7 +14,16 @@ export default {
 		searchTitle: "",
 		searchAuthors: "",
 		searchTags: [],
-		selectedLanguage: ""
+		selectedLanguage: "",
+		errors: [],
+		newBookISBN: "",
+		isbnRules: [
+			validationRules.required,
+			validationRules.isbn
+		],
+		newBookYear: 2023,
+		publishYearRules: [validationRules.required,, validationRules.year],
+		newBookForm: {}
 	}),
 	computed: {
 		filteredBooks() {
@@ -46,6 +56,9 @@ export default {
 			if (query == "") return true;
 			return str.toLowerCase().includes(query.toLowerCase())
 		},
+		createNewBook() {
+			this.$inertia.post("/books", { isbn: this.newBookISBN, year: this.newBookYear })
+		}
 	},
 	watch: {
 		selectedLanguage(language) {
@@ -58,9 +71,30 @@ export default {
 <template>
 	<Layout>
 		<template v-slot:header>
-			<div class="d-flex justify-between px-5 pt-2">
+			<div class="header d-flex justify-between flex-wrap align-center px-5 pt-2">
 				<h1>Search books</h1>
 				<v-spacer></v-spacer>
+				<v-dialog width="500">
+					<template v-slot:activator="{ props }">
+						<v-btn color="success" v-bind="props" text="New book"> </v-btn>
+					</template>
+
+					<template v-slot:default>
+						<v-card title="New book" class="pa-5">
+							<div class="errors text-center mb-2">
+								<span color="error" v-for="error, n of errors" :key="n">{{ error }}</span>
+							</div>
+							<v-form v-model="newBookForm" @submit.prevent="createNewBook">
+								<v-text-field v-model.trim="newBookISBN" :rules="isbnRules" label="ISBN"></v-text-field>
+								<v-text-field type="number" v-model.number="newBookYear" :rules="publishYearRules" label="Publication year"></v-text-field>
+
+								<v-btn block color="success" text="Create new book" type="submit"
+									:disabled="errors.length > 0 || !newBookForm"></v-btn>
+							</v-form>
+						</v-card>
+					</template>
+				</v-dialog>
+
 				<Suspense>
 					<language-select v-model="selectedLanguage" @input="selectedLanguage = $event"></language-select>
 				</Suspense>
@@ -89,6 +123,16 @@ export default {
 
 
 <style scoped>
+.header {
+	gap: 1em;
+}
+
+.errors {
+	font-style: italic;
+	color: red;
+	height: 1.2em;
+}
+
 .sidebar {
 	padding: 0.5em;
 }

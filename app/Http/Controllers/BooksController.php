@@ -46,6 +46,22 @@ class BooksController extends Controller
         return Inertia::render('Books', ['books' => $books, 'tags' => $tags]);
     }
 
+	public function create(Request $request){
+		$request->validate([
+            'isbn' => 'required|string',
+            'year' => 'required|integer',
+        ]);
+
+		$book = new Book([
+			'isbn' => $request->input('isbn'),
+            'publish_year' => $request->input('year'),
+		]);
+
+		$book->save();
+		
+		return Inertia::location(url("/books/{$book->id}/edit"));
+	}
+
 	public function edit($id){
 
 		$book = Book::with(['translations', 'tags.translations'])->find($id);
