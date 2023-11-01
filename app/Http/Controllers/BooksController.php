@@ -43,7 +43,7 @@ class BooksController extends Controller
 
         $tags = Tag::with(['translations' => $this->getTranslationsQuery($languageId)])->get();
 
-        return Inertia::render('Books', ['books' => $books, 'tags' => $tags]);
+        return Inertia::render('Books', ['books' => $books, 'tags' => $tags,'languages' => Language::all()]);
     }
 
 	public function create(Request $request){
@@ -66,7 +66,7 @@ class BooksController extends Controller
 
 		$book = Book::with(['translations', 'tags.translations'])->find($id);
 
-		return Inertia::render('EditBook', ['book' => $book]);
+		return Inertia::render('EditBook', ['book' => $book, 'languages' => Language::all()]);
 	}
 }
 

@@ -22,9 +22,18 @@ export default {
 			validationRules.isbn
 		],
 		newBookYear: 2023,
-		publishYearRules: [validationRules.required,, validationRules.year],
-		newBookForm: {}
+		publishYearRules: [validationRules.required, , validationRules.year],
+		newBookForm: false
 	}),
+	mounted() {
+		const queryParams = new URLSearchParams(window.location.search);
+		const lang = queryParams.get('lang');
+		if(lang) this.selectedLanguage = lang //this.languages.find(l => l.short_name == lang)
+		else
+			this.selectedLanguage = this.languages[0].short_name;
+		
+
+	},
 	computed: {
 		filteredBooks() {
 			let books = this.books.filter(book =>
@@ -62,6 +71,7 @@ export default {
 	},
 	watch: {
 		selectedLanguage(language) {
+			console.log(this.selectedLanguage)
 			this.$inertia.get('/', { lang: language.short_name }, { preserveState: true, replace: true })
 		}
 	}
@@ -86,7 +96,8 @@ export default {
 							</div>
 							<v-form v-model="newBookForm" @submit.prevent="createNewBook">
 								<v-text-field v-model.trim="newBookISBN" :rules="isbnRules" label="ISBN"></v-text-field>
-								<v-text-field type="number" v-model.number="newBookYear" :rules="publishYearRules" label="Publication year"></v-text-field>
+								<v-text-field type="number" v-model.number="newBookYear" :rules="publishYearRules"
+									label="Publication year"></v-text-field>
 
 								<v-btn block color="success" text="Create new book" type="submit"
 									:disabled="errors.length > 0 || !newBookForm"></v-btn>
@@ -113,7 +124,8 @@ export default {
 		</div>
 
 		<div class="books">
-			<book-card v-for="book in filteredBooks ?? []" :key="book.isbn" v-bind="book">
+			<book-card v-for="book in filteredBooks ?? []" :key="book.isbn" v-bind="book"
+				@edit-book="$inertia.visit(`/books/${book.id}/edit`, { data: { lang: selectedLanguage?.short_name ?? languages[0].short_name } });">
 
 			</book-card>
 			<div class="text-center" v-if="filteredBooks.length == 0">No results</div>

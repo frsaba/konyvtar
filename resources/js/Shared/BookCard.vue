@@ -10,11 +10,6 @@ export default {
 		translations: Array,
 		thumbnail: String
 	},
-	methods: {
-		redirectToEdit() {
-			this.$inertia.visit(`/books/${this.id}/edit`);
-		},
-	},
 	computed: {
 		title() {
 			return this.translations[0]?.title
@@ -42,7 +37,7 @@ export default {
 
 		<span class="description">{{ description }}</span>
 
-		<v-btn color="success" @click="redirectToEdit">Edit</v-btn>
+		<v-btn color="success" @click="$emit('edit-book')">Edit</v-btn>
 
 		<span class="isbn">
 			#{{ isbn }}
