@@ -1,10 +1,9 @@
 <script>
 import BookCard from '../Shared/BookCard.vue';
 import Layout from '../Shared/Layout.vue';
-import LanguageSelect from '../Shared/LanguageSelect.vue';
 import { validationRules } from '../Shared/formValidationRules';
 export default {
-	components: { Layout, BookCard, Layout, LanguageSelect },
+	components: { Layout, BookCard, Layout },
 	props: {
 		books: Array,
 		tags: Array,
@@ -28,10 +27,10 @@ export default {
 	mounted() {
 		const queryParams = new URLSearchParams(window.location.search);
 		const lang = queryParams.get('lang');
-		if(lang) this.selectedLanguage = lang //this.languages.find(l => l.short_name == lang)
+		if (lang) this.selectedLanguage = this.languages.find(l => l.short_name == lang)
 		else
-			this.selectedLanguage = this.languages[0].short_name;
-		
+			this.selectedLanguage = this.languages[0];
+
 
 	},
 	computed: {
@@ -71,7 +70,7 @@ export default {
 	},
 	watch: {
 		selectedLanguage(language) {
-			console.log(this.selectedLanguage)
+			// console.log(this.selectedLanguage)
 			this.$inertia.get('/', { lang: language.short_name }, { preserveState: true, replace: true })
 		}
 	}
@@ -106,9 +105,9 @@ export default {
 					</template>
 				</v-dialog>
 
-				<Suspense>
-					<language-select v-model="selectedLanguage" @input="selectedLanguage = $event"></language-select>
-				</Suspense>
+				<v-select class="select" hide-details label="Language" :items="languages" v-model="selectedLanguage"
+					:item-props="(item) => ({ title: item.short_name, subtitle: item.long_name, })">
+				</v-select>
 			</div>
 		</template>
 
@@ -143,6 +142,12 @@ export default {
 	font-style: italic;
 	color: red;
 	height: 1.2em;
+}
+
+.select {
+	max-width: 10em;
+	width: 5em;
+	min-width: 5em;
 }
 
 .sidebar {
