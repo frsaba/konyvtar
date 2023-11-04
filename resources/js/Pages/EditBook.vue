@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps(['page', 'book', 'languages'])
+const props = defineProps(['page', 'book', 'languages', 'authors'])
 import axios from 'axios';
 import Layout from '../Shared/Layout.vue';
 import { validationRules } from '../Shared/formValidationRules';
@@ -15,6 +15,8 @@ let thumbnail = ref(props.book.thumbnail);
 
 
 let selectedLanguage = ref(props.languages[0]);
+let selectedAuthorNames = ref(props.book.authors.map(a => a.name));
+
 
 onMounted(() => {
 	const queryParams = new URLSearchParams(window.location.search);
@@ -41,18 +43,35 @@ watchEffect(() => {
 	// console.log(props.book.translations, selectedLanguage.value.id)
 })
 
+let allAuthorNames = computed(() => {
+	return props.authors.map(a => a.name)
+})
+
 async function saveBook() {
+	let authorsToRemoveFromBook = props.book.authors.filter(a => selectedAuthorNames.value.includes(a.name) == false)
+	let authorsToAddToBook = selectedAuthorNames.value.filter(name => props.book.authors.some(a => a.name == name) == false)
+	let authorsToCreate = selectedAuthorNames.value.filter(name => allAuthorNames.value.includes(name) == false)
+
+	console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
 	await Inertia.put(`/books/${props.book.id}`, {
 		id: props.book.id,
 		isbn,
 		publishYear,
 		thumbnail,
-		translations: props.book.translations
+		translations: props.book.translations,
+		authorsToCreate,
+		authorsToAddToBook,
+		authorsToRemoveFromBook
 	})
 }
-async function deleteBook(){
+async function deleteBook() {
 	await Inertia.delete(`/books/${props.book.id}`);
 }
+
+function handleAuthorsChange(asd) {
+	console.log(asd)
+}
+
 
 </script>
 
@@ -73,10 +92,16 @@ async function deleteBook(){
 			<v-text-field type="number" :rules="publishYearRules" label="Publication year"
 				v-model="publishYear"></v-text-field>
 			<v-text-field label="Thumbnail link" v-model="thumbnail"></v-text-field>
+			<v-combobox v-model="selectedAuthorNames" :items="allAuthorNames" multiple chips clearable deletable-chips hide-selected
+				label="Select or create authors" @change="handleAuthorsChange">
+			</v-combobox>
+
 			<v-text-field label="Title" v-model="activeTranslation.title"></v-text-field>
 			<v-textarea label="Description" v-model="activeTranslation.description"></v-textarea>
 			<!-- {{ book.translations }} -->
-			{{ book }}
+			<!-- {{ book }} -->
+
+
 			<v-btn color="error" @click="deleteBook">Delete book</v-btn>
 			<v-btn color="success" type="submit">Save changes</v-btn>
 		</v-form>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Author;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Language;
@@ -67,21 +68,29 @@ class BooksController extends Controller
 	public function edit($id)
 	{
 
-		$book = Book::with(['translations', 'tags.translations'])->find($id);
+		$book = Book::with(['translations', 'tags.translations', 'authors'])->find($id);
 
-		return Inertia::render('EditBook', ['book' => $book, 'languages' => Language::all()]);
+		return Inertia::render('EditBook', ['book' => $book, 'languages' => Language::all(), 'authors' => Author::all()]);
 	}
 
 	public function save($id, Request $request)
 	{
-		// dd($request->isbn['_value']);
-		// dd($request->input('translations'));
-		// $validated = $request->validate([
-		// 	'isbn' => 'required|string',
-		// 	'publishYear' => 'required|integer',
-		// ]);
-		// dd($validated);
 
+		//Handle author changes
+		$book = Book::find($id);
+		foreach($request->authorsToRemoveFromBook as $author){
+			$book->authors()->detach($author['id']);
+		}
+		foreach($request->authorsToCreate as $name){
+			$newAuthor = Author::create(['name' => $name]);
+		}
+		foreach($request->authorsToAddToBook as $name){
+			$author = Author::where('name', $name)->first();
+			$book->authors()->attach($author->id);
+		}
+		
+
+		//update ISBN and publication year
 		DB::table('books')
 			->where('id', $id)
 			->update([
@@ -90,6 +99,7 @@ class BooksController extends Controller
 			]);
 			
 		
+		//update translations
 		Translation::upsert($request->input('translations'), ['book_id', 'language_id'],);
 
 		return Inertia::location(url("/"));
@@ -97,7 +107,7 @@ class BooksController extends Controller
 
 	public function destroy($id){
 		Book::find($id)->delete();
-		
+
 		return Inertia::location(url("/"));
 
 	}
