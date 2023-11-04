@@ -94,4 +94,11 @@ class BooksController extends Controller
 
 		return Inertia::location(url("/"));
 	}
+
+	public function destroy($id){
+		Book::find($id)->delete();
+		
+		return Inertia::location(url("/"));
+
+	}
 }

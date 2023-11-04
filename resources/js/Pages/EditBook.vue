@@ -50,6 +50,9 @@ async function saveBook() {
 		translations: props.book.translations
 	})
 }
+async function deleteBook(){
+	await Inertia.delete(`/books/${props.book.id}`);
+}
 
 </script>
 
@@ -74,7 +77,7 @@ async function saveBook() {
 			<v-textarea label="Description" v-model="activeTranslation.description"></v-textarea>
 			<!-- {{ book.translations }} -->
 			{{ book }}
-			<v-btn color="error">Delete book</v-btn>
+			<v-btn color="error" @click="deleteBook">Delete book</v-btn>
 			<v-btn color="success" type="submit">Save changes</v-btn>
 		</v-form>
 	</Layout>
