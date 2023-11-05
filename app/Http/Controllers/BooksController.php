@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\Language;
 use App\Models\Tag;
 use App\Models\Translation;
+use DateTime;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
@@ -41,7 +42,7 @@ class BooksController extends Controller
 			},
 			'tags',
 			'tags.translations' => $this->getTranslationsQuery($languageId),
-		])->get();
+		])->latest('updated_at')->get();
 
 		$tags = Tag::with(['translations' => $this->getTranslationsQuery($languageId)])->get();
 
@@ -104,7 +105,8 @@ class BooksController extends Controller
 			->update([
 				'isbn' => $request->isbn['_value'],
 				'publish_year' => $request->publishYear['_value'],
-				'thumbnail' => $request->thumbnail['_value']
+				'thumbnail' => $request->thumbnail['_value'],
+				'updated_at' => new DateTime()
 			]);
 
 

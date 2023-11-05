@@ -1,4 +1,5 @@
 <script>
+import {DateTime} from 'luxon'
 export default {
 	props: {
 		id: Number,
@@ -8,8 +9,16 @@ export default {
 		thumbnail: String,
 		tags: Array,
 		translations: Array,
-		thumbnail: String
+		thumbnail: String,
+        created_at: String,
+        updated_at: String
 	},
+    methods:{
+        formatDate(date){
+            return DateTime.fromISO(date).toRelative();
+
+        }
+    },
 	computed: {
 		title() {
 			return this.translations[0]?.title
@@ -46,6 +55,9 @@ export default {
 
 			<v-chip v-for="tag in tagNames" :key="tag">{{ tag }}</v-chip>
 		</div>
+        <span class="create-date text-small">Created: {{ formatDate(created_at) }}</span>
+        <span class="update-date text-small">Last updated: {{ formatDate(updated_at) }}</span>
+
 	</v-card>
 </template>
 
@@ -57,8 +69,14 @@ export default {
 		"thumbnail title isbn"
 		"thumbnail authors authors"
 		"thumbnail description description"
-		"thumbnail tags edit";
+		"thumbnail tags edit"
+        "thumbnail create-date create-date"
+        "thumbnail update-date update-date";
 	grid-template-columns: minmax(3em, 10em) 4fr max-content;
+}
+.text-small{
+    font-size: smaller;
+    font-style: italic;
 }
 
 .title {
@@ -89,5 +107,12 @@ export default {
 
 .tags {
 	grid-area: tags;
+}
+.create-date {
+    grid-area: create-date;
+}
+
+.update-date{
+    grid-area: update-date;
 }
 </style>

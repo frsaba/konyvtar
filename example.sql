@@ -34,9 +34,8 @@ INSERT INTO `authors` (`id`, `name`, `created_at`, `updated_at`) VALUES
 --
 
 INSERT INTO `books` (`id`, `isbn`, `thumbnail`, `publish_year`, `created_at`, `updated_at`) VALUES
-(1, '9780002261982', 'https://upload.wikimedia.org/wikipedia/en/0/0e/Spiders_Web_First_Edition_Cover_2000.jpg', 2000, NULL, NULL),
-(4, '9783328106906', 'https://m.media-amazon.com/images/I/51oz8oVYo8L.jpg', 2014, '2023-11-05 16:48:47', '2023-11-05 16:48:47');
-
+(1, '9780002261982', 'https://upload.wikimedia.org/wikipedia/en/0/0e/Spiders_Web_First_Edition_Cover_2000.jpg', 2000, '2023-11-04 11:44:28', '2023-11-05 18:49:54'),
+(4, '9783328106906', 'https://m.media-amazon.com/images/I/51oz8oVYo8L.jpg', 2014, '2023-11-05 16:48:47', '2023-11-05 18:49:39');
 --
 -- Dumping data for table `author_book`
 --
