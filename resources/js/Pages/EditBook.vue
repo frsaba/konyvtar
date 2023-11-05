@@ -55,7 +55,7 @@ watchEffect(() => {
 	}
 
 	activeTranslation = props.book.translations.find(translation => translation.language_id == selectedLanguage.value.id)
-	selectedTags.value = props.book.tags.map(tag => getTagTranslationName(tag));
+	selectedTags.value = selectedTags.value.map(name => getTagTranslationName(getTagWithTranslation(name)));
 	selectedLanguageIndex.value = props.languages.findIndex(l => {
 		return l.id == selectedLanguage.value.id
 	})
@@ -74,6 +74,10 @@ let allTagNames = computed(() => {
 function getTagTranslationName(tag) {
 	let tagTranslation = tag.translations.find(translation => translation.language_id == selectedLanguage.value.id) ?? tag.translations[0]
 	return tagTranslation.name
+}
+
+function getTagWithTranslation(name){
+	return allTags.value.find(tag => tag.translations.some(translation => translation.name == name))
 }
 
 watch(selectedTags, async () => {
@@ -98,6 +102,7 @@ async function createNewTag() {
 	await Inertia.post('/tags', { translations: newTagTranslations.value, languages: props.languages })
 	newTagDialog.value = false;
 	newTagTranslations.value = props.languages.map(l => "");
+	allTags.value = (await axios.get('/tags')).data;
 }
 
 
@@ -109,7 +114,7 @@ async function saveBook() {
 
 	allTags.value = (await axios.get('/tags')).data;
 	let tagNamesToAddToBook = selectedTags.value.filter(name => props.book.tags.some(tag => getTagTranslationName(tag) == name) == false)
-	let tagsToAddToBook = tagNamesToAddToBook.map(name => allTags.value.find(tag => tag.translations.some(translation => translation.name == name)))
+	let tagsToAddToBook = tagNamesToAddToBook.map(name => getTagWithTranslation(name))
 	let tagsToRemoveFromBook = props.book.tags.filter(tag => selectedTags.value.includes(getTagTranslationName(tag)) == false)
 
 	// console.log(tagsToAddToBook, tagsToRemoveFromBook)
