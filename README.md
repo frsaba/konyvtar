@@ -10,10 +10,12 @@ Create a .env file based on .env.example and edit the database credentials
 ```
 php artisan key:generate
 ```
-## Make database migrations
+## Create database
 ```
 php artisan migrate
 ```
+### load example data from `example.sql`
+
 ## Run
 ```
 yarn dev
