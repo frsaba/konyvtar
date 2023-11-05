@@ -107,6 +107,9 @@ export default {
 
 .tags {
 	grid-area: tags;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2em;
 }
 .create-date {
     grid-area: create-date;
