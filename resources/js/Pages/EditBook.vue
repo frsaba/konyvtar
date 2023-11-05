@@ -119,7 +119,8 @@ async function saveBook() {
 
 	// console.log(tagsToAddToBook, tagsToRemoveFromBook)
 	// console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
-	await Inertia.put(`/books/${props.book.id}`, {
+	console.log(selectedLanguage)
+	await Inertia.put(`/books/${props.book.id}?lang=${selectedLanguage.value.short_name}`, {
 		id: props.book.id,
 		isbn,
 		publishYear,
@@ -133,7 +134,7 @@ async function saveBook() {
 	})
 }
 async function deleteBook() {
-	await Inertia.delete(`/books/${props.book.id}`);
+	await Inertia.delete(`/books/${props.book.id}?lang=${selectedLanguage.value.short_name}`);
 }
 
 

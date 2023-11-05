@@ -113,14 +113,16 @@ class BooksController extends Controller
 		//update translations
 		Translation::upsert($request->input('translations'), ['book_id', 'language_id'],);
 
-		return Inertia::location(url("/"));
+        // Redirect to another page with the same query parameters using Inertia::location()
+        return Inertia::location(url("/" . '?' . http_build_query(request()->query())));
+		// return Inertia::location(url("/"));
 	}
 
 	public function destroy($id)
 	{
 		Book::find($id)->delete();
 
-		return Inertia::location(url("/"));
+		return Inertia::location(url("/" . '?' . http_build_query(request()->query())));
 	}
 
 	public function get_by_isbn(Request $request){
