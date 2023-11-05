@@ -103,7 +103,8 @@ class BooksController extends Controller
 			->where('id', $id)
 			->update([
 				'isbn' => $request->isbn['_value'],
-				'publish_year' => $request->publishYear['_value']
+				'publish_year' => $request->publishYear['_value'],
+				'thumbnail' => $request->thumbnail['_value']
 			]);
 
 

@@ -32,7 +32,6 @@ onMounted(() => {
 	if (lang) selectedLanguage.value = props.languages.find(l => l.short_name == lang)
 
 	selectedTags.value = props.book.tags.map(tag => getTagTranslationName(tag));
-
 });
 
 let activeTranslation;
@@ -48,7 +47,6 @@ watchEffect(() => {
 			id: null
 		}
 		props.book.translations.push(newTranslation)
-		newlyCreatedTranslations.push(newTranslation)
 	}
 
 	activeTranslation = props.book.translations.find(translation => translation.language_id == selectedLanguage.value.id)
@@ -81,18 +79,16 @@ watch(selectedTags, () => {
 	}
 })
 
-//FIXME remove newly added tag on click outside
-watch(newTagDialog, () => {
-	// if (newTagDialog.value == false) { //on close
-	// 	selectedTags.value = selectedTags.value.filter(name => allTagNames.value.includes(name)); //remove the newly added tag
-	// 	newTagTranslations.value = props.languages.map(l => "");
+async function closeNewTagDialog() {
+		let allTags = (await axios.get('/tags')).data;
+		selectedTags.value = selectedTags.value.filter(name => allTags.some(tag => getTagTranslationName(tag) == name)); //remove the newly added tag
+		newTagTranslations.value = props.languages.map(l => "");
 
-	// }
-})
+}
 
-async function createNewTag(){
-	await Inertia.post('/tags',{ translations: newTagTranslations.value, languages: props.languages })
-	newTagDialog = false;
+async function createNewTag() {
+	await axios.post('/tags', { translations: newTagTranslations.value, languages: props.languages })
+	newTagDialog.value = false;
 	newTagTranslations.value = props.languages.map(l => "");
 }
 
@@ -142,7 +138,7 @@ async function deleteBook() {
 
 			</div>
 		</template>
-		<v-dialog v-model="newTagDialog" width="500">
+		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog">
 			<v-card class="pa-5">
 				<v-text-field v-for="language, i in languages" name="name" :label="`New tag (${language.long_name})`"
 					v-model="newTagTranslations[i]" autofocus></v-text-field>
