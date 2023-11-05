@@ -122,4 +122,10 @@ class BooksController extends Controller
 
 		return Inertia::location(url("/"));
 	}
+
+	public function get_by_isbn(Request $request){
+		$book = Book::where('isbn', $request->query('isbn'))->first();
+
+		return $book ? $book->id : -1;
+	}
 }

@@ -2,13 +2,22 @@
 const props = defineProps(['page', 'book', 'languages', 'authors', 'tags'])
 import axios from 'axios';
 import Layout from '../Shared/Layout.vue';
-import { validationRules } from '../Shared/formValidationRules';
+import { validationRules, getBookWithISBN as getBookIDWithISBN } from '../Shared/formValidationRules';
 import { computed, ref, watchEffect, onMounted, watch } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 
 let form = true;
 let isbn = ref(props.book.isbn);
-let isbnRules = [validationRules.required, validationRules.isbn];
+
+//isbn can exists, it should exactly be the book we are editing
+async function isbnIsCurrentBook(isbn){
+	let id = await getBookIDWithISBN(isbn);
+	if(id == -1) return true;
+	if(id != props.book.id) return "Another book already exists with this ISBN!"
+	return true
+}
+
+let isbnRules = [validationRules.required, validationRules.isbn, isbnIsCurrentBook];
 let publishYear = ref(props.book.publish_year);
 let publishYearRules = [validationRules.required, , validationRules.year];
 let thumbnail = ref(props.book.thumbnail);

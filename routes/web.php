@@ -27,6 +27,7 @@ Route::get('/', [BooksController::class, 'index']);
 Route::post('/books', [BooksController::class, 'create']);
 Route::get('/books/{id}/edit', [BooksController::class, 'edit']);
 Route::put('/books/{id}', [BooksController::class, 'save']);
+Route::get('/books/isbn', [BooksController::class, 'get_by_isbn']);
 Route::delete('/books/{id}', [BooksController::class, 'destroy']);
 Route::get('/languages', [LanguagesController::class, 'index']);
 Route::post('/tags', [TagsController::class, 'create']);

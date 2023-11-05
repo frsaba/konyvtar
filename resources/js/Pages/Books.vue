@@ -18,7 +18,8 @@ export default {
 		newBookISBN: "",
 		isbnRules: [
 			validationRules.required,
-			validationRules.isbn
+			validationRules.isbn,
+			validationRules.isbn_not_exists
 		],
 		newBookYear: 2023,
 		publishYearRules: [validationRules.required, , validationRules.year],
