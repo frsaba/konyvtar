@@ -1,9 +1,9 @@
 <script setup>
-const props = defineProps(['page', 'book', 'languages', 'authors'])
+const props = defineProps(['page', 'book', 'languages', 'authors', 'tags'])
 import axios from 'axios';
 import Layout from '../Shared/Layout.vue';
 import { validationRules } from '../Shared/formValidationRules';
-import { computed, ref, watchEffect, onMounted } from 'vue'
+import { computed, ref, watchEffect, onMounted, watch } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 
 let form = true;
@@ -16,17 +16,29 @@ let thumbnail = ref(props.book.thumbnail);
 
 let selectedLanguage = ref(props.languages[0]);
 let selectedAuthorNames = ref(props.book.authors.map(a => a.name));
+let selectedTags = ref([]);
 
+let newTagDialog = ref(false);
+// let selectedLanguageIndex = computed(() => props.languages.indexOf(l => {
+// 	console.log(l, selectedLanguage)
+// 	return l.id == selectedLanguage.value.id
+// }))
+let selectedLanguageIndex = ref(0);
+let newTagTranslations = ref(props.languages.map(l => ""))
 
 onMounted(() => {
 	const queryParams = new URLSearchParams(window.location.search);
 	const lang = queryParams.get('lang');
 	if (lang) selectedLanguage.value = props.languages.find(l => l.short_name == lang)
+
+	selectedTags.value = props.book.tags.map(tag => getTagTranslationName(tag));
+
 });
 
 let activeTranslation;
-let newlyCreatedTranslations = [];
+//watch for selectedLanguage change
 watchEffect(() => {
+	//if this book doesn't have a translation for this language yet, create it
 	if (props.book.translations.every(translation => translation.language_id != selectedLanguage.value.id)) {
 		let newTranslation = {
 			book_id: props.book.id,
@@ -40,6 +52,11 @@ watchEffect(() => {
 	}
 
 	activeTranslation = props.book.translations.find(translation => translation.language_id == selectedLanguage.value.id)
+	selectedTags.value = props.book.tags.map(tag => getTagTranslationName(tag));
+	selectedLanguageIndex.value = props.languages.findIndex(l => {
+		return l.id == selectedLanguage.value.id
+	})
+	// console.log(selectedLanguageIndex, props.languages)
 	// console.log(props.book.translations, selectedLanguage.value.id)
 })
 
@@ -47,12 +64,52 @@ let allAuthorNames = computed(() => {
 	return props.authors.map(a => a.name)
 })
 
+let allTagNames = computed(() => {
+	return props.tags.map(tag => getTagTranslationName(tag))
+})
+
+function getTagTranslationName(tag) {
+	let tagTranslation = tag.translations.find(translation => translation.language_id == selectedLanguage.value.id) ?? tag.translations[0]
+	return tagTranslation.name
+}
+
+watch(selectedTags, () => {
+	let newTag = selectedTags.value.find(name => allTagNames.value.includes(name) == false);
+	if (newTag) {
+		newTagDialog.value = true;
+		newTagTranslations.value[selectedLanguageIndex.value] = newTag;
+	}
+})
+
+//FIXME remove newly added tag on click outside
+watch(newTagDialog, () => {
+	// if (newTagDialog.value == false) { //on close
+	// 	selectedTags.value = selectedTags.value.filter(name => allTagNames.value.includes(name)); //remove the newly added tag
+	// 	newTagTranslations.value = props.languages.map(l => "");
+
+	// }
+})
+
+async function createNewTag(){
+	await Inertia.post('/tags',{ translations: newTagTranslations.value, languages: props.languages })
+	newTagDialog = false;
+	newTagTranslations.value = props.languages.map(l => "");
+}
+
+
 async function saveBook() {
 	let authorsToRemoveFromBook = props.book.authors.filter(a => selectedAuthorNames.value.includes(a.name) == false)
 	let authorsToAddToBook = selectedAuthorNames.value.filter(name => props.book.authors.some(a => a.name == name) == false)
 	let authorsToCreate = selectedAuthorNames.value.filter(name => allAuthorNames.value.includes(name) == false)
 
-	console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
+
+	let allTags = (await axios.get('/tags')).data;
+	let tagNamesToAddToBook = selectedTags.value.filter(name => props.book.tags.some(tag => getTagTranslationName(tag) == name) == false)
+	let tagsToAddToBook = tagNamesToAddToBook.map(name => allTags.find(tag => tag.translations.some(translation => translation.name == name)))
+	let tagsToRemoveFromBook = props.book.tags.filter(tag => selectedTags.value.includes(getTagTranslationName(tag)) == false)
+
+	console.log(tagsToAddToBook, tagsToRemoveFromBook)
+	// console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
 	await Inertia.put(`/books/${props.book.id}`, {
 		id: props.book.id,
 		isbn,
@@ -61,15 +118,13 @@ async function saveBook() {
 		translations: props.book.translations,
 		authorsToCreate,
 		authorsToAddToBook,
-		authorsToRemoveFromBook
+		authorsToRemoveFromBook,
+		tagsToAddToBook,
+		tagsToRemoveFromBook
 	})
 }
 async function deleteBook() {
 	await Inertia.delete(`/books/${props.book.id}`);
-}
-
-function handleAuthorsChange(asd) {
-	console.log(asd)
 }
 
 
@@ -87,13 +142,25 @@ function handleAuthorsChange(asd) {
 
 			</div>
 		</template>
+		<v-dialog v-model="newTagDialog" width="500">
+			<v-card class="pa-5">
+				<v-text-field v-for="language, i in languages" name="name" :label="`New tag (${language.long_name})`"
+					v-model="newTagTranslations[i]" autofocus></v-text-field>
+				<v-btn color="success" @click="createNewTag">Add new tag</v-btn>
+			</v-card>
+		</v-dialog>
+
 		<v-form v-model="form" @submit.prevent="saveBook">
 			<v-text-field label="ISBN" :rules="isbnRules" v-model="isbn"></v-text-field>
 			<v-text-field type="number" :rules="publishYearRules" label="Publication year"
 				v-model="publishYear"></v-text-field>
 			<v-text-field label="Thumbnail link" v-model="thumbnail"></v-text-field>
-			<v-combobox v-model="selectedAuthorNames" :items="allAuthorNames" multiple chips clearable deletable-chips hide-selected
-				label="Select or create authors" @change="handleAuthorsChange">
+			<v-combobox v-model="selectedAuthorNames" :items="allAuthorNames" multiple chips clearable deletable-chips
+				hide-selected label="Select or create authors">
+			</v-combobox>
+
+			<v-combobox v-model="selectedTags" :items="allTagNames" multiple chips clearable deletable-chips hide-selected
+				label="Select or create tags">
 			</v-combobox>
 
 			<v-text-field label="Title" v-model="activeTranslation.title"></v-text-field>

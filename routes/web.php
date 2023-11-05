@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BooksController;
 use App\Http\Controllers\LanguagesController;
+use App\Http\Controllers\TagsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Book;
@@ -28,3 +29,5 @@ Route::get('/books/{id}/edit', [BooksController::class, 'edit']);
 Route::put('/books/{id}', [BooksController::class, 'save']);
 Route::delete('/books/{id}', [BooksController::class, 'destroy']);
 Route::get('/languages', [LanguagesController::class, 'index']);
+Route::post('/tags', [TagsController::class, 'create']);
+Route::get('/tags', [TagsController::class, 'index']);

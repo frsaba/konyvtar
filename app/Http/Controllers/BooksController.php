@@ -70,7 +70,7 @@ class BooksController extends Controller
 
 		$book = Book::with(['translations', 'tags.translations', 'authors'])->find($id);
 
-		return Inertia::render('EditBook', ['book' => $book, 'languages' => Language::all(), 'authors' => Author::all()]);
+		return Inertia::render('EditBook', ['book' => $book, 'languages' => Language::all(), 'authors' => Author::all(), 'tags' => Tag::with('translations')->get()]);
 	}
 
 	public function save($id, Request $request)
@@ -78,17 +78,25 @@ class BooksController extends Controller
 
 		//Handle author changes
 		$book = Book::find($id);
-		foreach($request->authorsToRemoveFromBook as $author){
+		foreach ($request->authorsToRemoveFromBook as $author) {
 			$book->authors()->detach($author['id']);
 		}
-		foreach($request->authorsToCreate as $name){
+		foreach ($request->authorsToCreate as $name) {
 			$newAuthor = Author::create(['name' => $name]);
 		}
-		foreach($request->authorsToAddToBook as $name){
+		foreach ($request->authorsToAddToBook as $name) {
 			$author = Author::where('name', $name)->first();
 			$book->authors()->attach($author->id);
 		}
-		
+
+		//tag changes
+		foreach ($request->tagsToRemoveFromBook as $tag) {
+			$book->tags()->detach($tag['id']);
+		}
+		foreach ($request->tagsToAddToBook as $tag) {
+			$book->tags()->attach($tag['id']);
+		}
+
 
 		//update ISBN and publication year
 		DB::table('books')
@@ -97,18 +105,18 @@ class BooksController extends Controller
 				'isbn' => $request->isbn['_value'],
 				'publish_year' => $request->publishYear['_value']
 			]);
-			
-		
+
+
 		//update translations
 		Translation::upsert($request->input('translations'), ['book_id', 'language_id'],);
 
 		return Inertia::location(url("/"));
 	}
 
-	public function destroy($id){
+	public function destroy($id)
+	{
 		Book::find($id)->delete();
 
 		return Inertia::location(url("/"));
-
 	}
 }
