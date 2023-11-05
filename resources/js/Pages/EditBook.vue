@@ -80,14 +80,16 @@ watch(selectedTags, () => {
 })
 
 async function closeNewTagDialog() {
-		let allTags = (await axios.get('/tags')).data;
-		selectedTags.value = selectedTags.value.filter(name => allTags.some(tag => getTagTranslationName(tag) == name)); //remove the newly added tag
-		newTagTranslations.value = props.languages.map(l => "");
+	let allTags = (await axios.get('/tags')).data;
+	selectedTags.value = selectedTags.value.filter(name => allTags.some(tag => getTagTranslationName(tag) == name)); //remove the newly added tag
+	newTagDialog.value = false;
+	newTagTranslations.value = props.languages.map(l => "");
+	// console.log("click outside")
 
 }
 
 async function createNewTag() {
-	await axios.post('/tags', { translations: newTagTranslations.value, languages: props.languages })
+	await Inertia.post('/tags', { translations: newTagTranslations.value, languages: props.languages })
 	newTagDialog.value = false;
 	newTagTranslations.value = props.languages.map(l => "");
 }
@@ -104,7 +106,7 @@ async function saveBook() {
 	let tagsToAddToBook = tagNamesToAddToBook.map(name => allTags.find(tag => tag.translations.some(translation => translation.name == name)))
 	let tagsToRemoveFromBook = props.book.tags.filter(tag => selectedTags.value.includes(getTagTranslationName(tag)) == false)
 
-	console.log(tagsToAddToBook, tagsToRemoveFromBook)
+	// console.log(tagsToAddToBook, tagsToRemoveFromBook)
 	// console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
 	await Inertia.put(`/books/${props.book.id}`, {
 		id: props.book.id,
@@ -138,11 +140,13 @@ async function deleteBook() {
 
 			</div>
 		</template>
-		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog">
+		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog" @keydown.esc="closeNewTagDialog" >
 			<v-card class="pa-5">
-				<v-text-field v-for="language, i in languages" name="name" :label="`New tag (${language.long_name})`"
-					v-model="newTagTranslations[i]" autofocus></v-text-field>
-				<v-btn color="success" @click="createNewTag">Add new tag</v-btn>
+				<v-form @submit.prevent="createNewTag">
+					<v-text-field v-for="language, i in languages" name="name" required :label="`New tag (${language.long_name})`"
+					v-model.trim="newTagTranslations[i]" autofocus></v-text-field>
+					<v-btn color="success" type="submit" :disabled="newTagTranslations.some(t => t == '')">Add new tag</v-btn>
+				</v-form>
 			</v-card>
 		</v-dialog>
 
