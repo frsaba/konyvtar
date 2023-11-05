@@ -10,10 +10,10 @@ let form = true;
 let isbn = ref(props.book.isbn);
 
 //isbn can exists, it should exactly be the book we are editing
-async function isbnIsCurrentBook(isbn){
+async function isbnIsCurrentBook(isbn) {
 	let id = await getBookIDWithISBN(isbn);
-	if(id == -1) return true;
-	if(id != props.book.id) return "Another book already exists with this ISBN!"
+	if (id == -1) return true;
+	if (id != props.book.id) return "Another book already exists with this ISBN!"
 	return true
 }
 
@@ -27,7 +27,7 @@ let selectedLanguage = ref(props.languages[0]);
 let selectedAuthorNames = ref(props.book.authors.map(a => a.name));
 let selectedTags = ref([]);
 
-let allTags = ref(props.tags); 
+let allTags = ref(props.tags);
 let newTagDialog = ref(false);
 let selectedLanguageIndex = ref(0);
 let newTagTranslations = ref(props.languages.map(l => ""))
@@ -55,13 +55,17 @@ watchEffect(() => {
 	}
 
 	activeTranslation = props.book.translations.find(translation => translation.language_id == selectedLanguage.value.id)
-	selectedTags.value = selectedTags.value.map(name => getTagTranslationName(getTagWithTranslation(name)));
 	selectedLanguageIndex.value = props.languages.findIndex(l => {
 		return l.id == selectedLanguage.value.id
 	})
 	// console.log(selectedLanguageIndex, props.languages)
 	// console.log(props.book.translations, selectedLanguage.value.id)
 })
+
+//this used to be in the watchEffect, but then it also ran when selectedTags changed which caused problems with newly created tags
+watch(selectedLanguage, () =>
+	selectedTags.value = selectedTags.value.map(name => getTagTranslationName(getTagWithTranslation(name)))
+)
 
 let allAuthorNames = computed(() => {
 	return props.authors.map(a => a.name)
@@ -76,7 +80,7 @@ function getTagTranslationName(tag) {
 	return tagTranslation.name
 }
 
-function getTagWithTranslation(name){
+function getTagWithTranslation(name) {
 	return allTags.value.find(tag => tag.translations.some(translation => translation.name == name))
 }
 
@@ -119,7 +123,7 @@ async function saveBook() {
 
 	// console.log(tagsToAddToBook, tagsToRemoveFromBook)
 	// console.log({originalAuthors: props.book.authors, selectedAuthorNames, authorsToRemoveFromBook, authorsToAddToBook, authorsToCreate})
-	console.log(selectedLanguage)
+	// console.log(selectedLanguage)
 	await Inertia.put(`/books/${props.book.id}?lang=${selectedLanguage.value.short_name}`, {
 		id: props.book.id,
 		isbn,
@@ -152,12 +156,13 @@ async function deleteBook() {
 
 			</div>
 		</template>
-		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog" @keydown.esc="closeNewTagDialog" >
+		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog" @keydown.esc="closeNewTagDialog">
 			<v-card class="pa-5">
 				<v-form @submit.prevent="createNewTag">
 					<v-text-field v-for="language, i in languages" required :label="`New tag (${language.long_name})`"
-					v-model.trim="newTagTranslations[i]" autofocus></v-text-field>
-					<v-btn color="success" type="submit" :disabled="newTagTranslations.some(t => t == '')">Add new tag</v-btn>
+						v-model.trim="newTagTranslations[i]" autofocus></v-text-field>
+					<v-btn color="success" type="submit" :disabled="newTagTranslations.some(t => t == '')">Add new
+						tag</v-btn>
 				</v-form>
 			</v-card>
 		</v-dialog>
