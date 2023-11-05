@@ -18,11 +18,8 @@ let selectedLanguage = ref(props.languages[0]);
 let selectedAuthorNames = ref(props.book.authors.map(a => a.name));
 let selectedTags = ref([]);
 
+let allTags = ref(props.tags); 
 let newTagDialog = ref(false);
-// let selectedLanguageIndex = computed(() => props.languages.indexOf(l => {
-// 	console.log(l, selectedLanguage)
-// 	return l.id == selectedLanguage.value.id
-// }))
 let selectedLanguageIndex = ref(0);
 let newTagTranslations = ref(props.languages.map(l => ""))
 
@@ -30,7 +27,6 @@ onMounted(() => {
 	const queryParams = new URLSearchParams(window.location.search);
 	const lang = queryParams.get('lang');
 	if (lang) selectedLanguage.value = props.languages.find(l => l.short_name == lang)
-
 	selectedTags.value = props.book.tags.map(tag => getTagTranslationName(tag));
 });
 
@@ -63,7 +59,7 @@ let allAuthorNames = computed(() => {
 })
 
 let allTagNames = computed(() => {
-	return props.tags.map(tag => getTagTranslationName(tag))
+	return allTags.value.map(tag => getTagTranslationName(tag))
 })
 
 function getTagTranslationName(tag) {
@@ -71,7 +67,8 @@ function getTagTranslationName(tag) {
 	return tagTranslation.name
 }
 
-watch(selectedTags, () => {
+watch(selectedTags, async () => {
+	allTags.value = (await axios.get('/tags')).data;
 	let newTag = selectedTags.value.find(name => allTagNames.value.includes(name) == false);
 	if (newTag) {
 		newTagDialog.value = true;
@@ -80,8 +77,8 @@ watch(selectedTags, () => {
 })
 
 async function closeNewTagDialog() {
-	let allTags = (await axios.get('/tags')).data;
-	selectedTags.value = selectedTags.value.filter(name => allTags.some(tag => getTagTranslationName(tag) == name)); //remove the newly added tag
+	allTags.value = (await axios.get('/tags')).data;
+	selectedTags.value = selectedTags.value.filter(name => allTags.value.some(tag => getTagTranslationName(tag) == name)); //remove the newly added tag
 	newTagDialog.value = false;
 	newTagTranslations.value = props.languages.map(l => "");
 	// console.log("click outside")
@@ -101,9 +98,9 @@ async function saveBook() {
 	let authorsToCreate = selectedAuthorNames.value.filter(name => allAuthorNames.value.includes(name) == false)
 
 
-	let allTags = (await axios.get('/tags')).data;
+	allTags.value = (await axios.get('/tags')).data;
 	let tagNamesToAddToBook = selectedTags.value.filter(name => props.book.tags.some(tag => getTagTranslationName(tag) == name) == false)
-	let tagsToAddToBook = tagNamesToAddToBook.map(name => allTags.find(tag => tag.translations.some(translation => translation.name == name)))
+	let tagsToAddToBook = tagNamesToAddToBook.map(name => allTags.value.find(tag => tag.translations.some(translation => translation.name == name)))
 	let tagsToRemoveFromBook = props.book.tags.filter(tag => selectedTags.value.includes(getTagTranslationName(tag)) == false)
 
 	// console.log(tagsToAddToBook, tagsToRemoveFromBook)
@@ -143,7 +140,7 @@ async function deleteBook() {
 		<v-dialog v-model="newTagDialog" width="500" @click:outside="closeNewTagDialog" @keydown.esc="closeNewTagDialog" >
 			<v-card class="pa-5">
 				<v-form @submit.prevent="createNewTag">
-					<v-text-field v-for="language, i in languages" name="name" required :label="`New tag (${language.long_name})`"
+					<v-text-field v-for="language, i in languages" required :label="`New tag (${language.long_name})`"
 					v-model.trim="newTagTranslations[i]" autofocus></v-text-field>
 					<v-btn color="success" type="submit" :disabled="newTagTranslations.some(t => t == '')">Add new tag</v-btn>
 				</v-form>
@@ -169,7 +166,7 @@ async function deleteBook() {
 			<!-- {{ book }} -->
 
 
-			<v-btn color="error" @click="deleteBook">Delete book</v-btn>
+			<v-btn color="error" @click="deleteBook" class="ma-3">Delete book</v-btn>
 			<v-btn color="success" type="submit">Save changes</v-btn>
 		</v-form>
 	</Layout>
